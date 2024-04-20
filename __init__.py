@@ -12,8 +12,6 @@ def send_message(singer, process_id, anchor, tags, data, mu=MU):
         'SDK': 'ao.py',
     }
     default_tags.update(tags)
-    if type(data) != type(b''):
-        data = data.encode('utf-8')
     b = arseeding.BundleItem(singer, process_id, anchor, default_tags, data)
     return b.id, requests.post(mu, data=b.binary, headers={'Content-Type': 'application/octet-stream'}).json()
 
