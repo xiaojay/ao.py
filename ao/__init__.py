@@ -1,18 +1,33 @@
 import requests
 import arseeding
 
+SDK = 'ao.py'
 MU = 'https://mu.ao-testnet.xyz'
 CU = 'https://cu.ao-testnet.xyz'
+SCHEDULER = '_GQ33BkPtZrqxA84vM8Zk-N2aO0toNNu_C-l-rawrBA'
 
 def send_message(singer, pid, anchor, tags, data='', mu=MU):
     default_tags = {
         'Data-Protocol': 'ao',
         'Variant': 'ao.TN.1',
         'Type': 'Message',
-        'SDK': 'ao.py',
+        'SDK': SDK,
     }
     default_tags.update(tags)
     b = arseeding.BundleItem(singer, pid, anchor, default_tags, data)
+    return b.id, requests.post(mu, data=b.binary, headers={'Content-Type': 'application/octet-stream'}).json()
+
+def spawn_process(singer, module, anchor, tags, data='', mu=MU, scheduler=SCHEDULER):
+    default_tags = {
+        'Data-Protocol': 'ao',
+        'Variant': 'ao.TN.1',
+        'Type': 'Process',
+        'Scheduler':scheduler,
+        'Module':module,
+        'SDK': SDK,
+    }
+    default_tags.update(tags)
+    b = arseeding.BundleItem(singer, "", anchor, default_tags, data)
     return b.id, requests.post(mu, data=b.binary, headers={'Content-Type': 'application/octet-stream'}).json()
 
 def get_result(pid, message_id, cu=CU):
