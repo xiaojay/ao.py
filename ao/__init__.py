@@ -17,6 +17,26 @@ def send_message(singer, pid, anchor, tags, data='', mu=MU):
     b = arseeding.BundleItem(singer, pid, anchor, default_tags, data)
     return b.id, requests.post(mu, data=b.binary, headers={'Content-Type': 'application/octet-stream'}).json()
 
+def dry_run(signer, pid ,anchor, tags, data='', cu=CU):
+    default_tags = {
+        'Data-Protocol': 'ao',
+        'Variant': 'ao.TN.1',
+        'Type': 'Message',
+        'SDK': SDK,
+    }
+    default_tags.update(tags)
+    tags = [{'name':k, 'value':v} for k,v in tags.items()]
+    url = '%s/dry-run?process-id=%s' % (cu, pid)
+    payload = {
+        'Target': pid,
+        'Owner': signer.address,
+        'Anchor': anchor,
+        'Data': data,
+        'Tags': tags,
+    }
+    print(payload)
+    return requests.post(url, json=payload).json()
+    
 def spawn_process(singer, module, anchor, tags, data='', mu=MU, scheduler=SCHEDULER):
     default_tags = {
         'Data-Protocol': 'ao',
@@ -27,7 +47,7 @@ def spawn_process(singer, module, anchor, tags, data='', mu=MU, scheduler=SCHEDU
         'SDK': SDK,
     }
     default_tags.update(tags)
-    b = arseeding.BundleItem(singer, "", anchor, default_tags, data)
+    b = arseeding.BundleItem(singer, '', anchor, default_tags, data)
     return b.id, requests.post(mu, data=b.binary, headers={'Content-Type': 'application/octet-stream'}).json()
 
 def get_result(pid, message_id, cu=CU):
