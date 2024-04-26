@@ -34,7 +34,6 @@ def dry_run(signer, pid ,anchor, tags, data='', cu=CU):
         'Data': data,
         'Tags': tags,
     }
-    print(payload)
     return requests.post(url, json=payload).json()
     
 def spawn_process(singer, module, anchor, tags, data='', mu=MU, scheduler=SCHEDULER):
@@ -55,5 +54,4 @@ def get_result(pid, message_id, cu=CU):
 
 def send_and_get(singer, pid, anchor, tags, data='', mu=MU, cu=CU):
     mid, _ = send_message(singer, pid, anchor, tags, data, mu)
-    return get_result(pid, mid, cu)
-       
+    return mid, get_result(pid, mid, cu)
