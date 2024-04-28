@@ -4,7 +4,6 @@ python sdk for ao https://ao.arweave.dev/
 ## install
 
 ```
-pip install ao.py
 ```
 
 
