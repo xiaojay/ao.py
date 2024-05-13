@@ -6,7 +6,7 @@ MU = 'https://mu.ao-testnet.xyz'
 CU = 'https://cu.ao-testnet.xyz'
 SCHEDULER = '_GQ33BkPtZrqxA84vM8Zk-N2aO0toNNu_C-l-rawrBA'
 
-def send_message(singer, to_pid, anchor, tags, data='', mu=MU, timeout=5):
+def send_message(singer, pid, anchor, tags, data='', mu=MU, timeout=5):
     default_tags = {
         'Data-Protocol': 'ao',
         'Variant': 'ao.TN.1',
@@ -14,11 +14,11 @@ def send_message(singer, to_pid, anchor, tags, data='', mu=MU, timeout=5):
         'SDK': SDK,
     }
     default_tags.update(tags)
-    b = arseeding.BundleItem(singer, to_pid, anchor, default_tags, data)
+    b = arseeding.BundleItem(singer, pid, anchor, default_tags, data)
     return b.id, requests.post(mu, data=b.binary, headers={'Content-Type': 'application/octet-stream'}, timeout=timeout).json()
 
 
-def dry_run(signer, pid, anchor, tags, data='', cu=CU, timeout=60):
+def dry_run(signer, pid, anchor, tags, data='', cu=CU, timeout=30):
     default_tags = {
         'Data-Protocol': 'ao',
         'Variant': 'ao.TN.1',
