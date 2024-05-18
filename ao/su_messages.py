@@ -50,6 +50,10 @@ class SuResponse:
     def __init__(self, page_info, edges):
         self.page_info = PageInfo(**page_info)
         self.edges = [Edge(edge, edge['cursor']) for edge in edges]
+
+    def get_latest_cursor(self):
+        edges_len = len(self.edges)
+        return self.edges[edges_len - 1].cursor
     
     def has_messages(self):
         return len(self.edges) > 0
@@ -68,6 +72,19 @@ class SuResponse:
                     return self.edges[edges_len - i - 1].node.message
                 
             return None
+        
+    def get_edges_via_tags(self, tagname, tagvalue):
+        edges = []
+        if tagname == None:
+            return edges
+        else:
+            edges_len = len(self.edges)
+
+            for i in range(edges_len):
+                if self.edges[i].node.message.has_tag(tagname, tagvalue):
+                    edges.append(self.edges[i])
+                
+            return edges
     
     def get_latest_balances(self, from_process):
         edges_len = len(self.edges)

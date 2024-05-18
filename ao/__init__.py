@@ -67,6 +67,11 @@ def get_latest_messages(pid, time_offset, timeout = 60, su=SU):
     past_timestamp = int(time.mktime(past_time.timetuple())) * 1000
     return get_messages(pid, from_timestamp = past_timestamp, timeout = timeout, su=su)
 
+def get_messages_via_date(pid, start_time, end_time, timeout = 60, su=SU):
+    start_timestamp = int(time.mktime(start_time.timetuple())) * 1000
+    end_timestamp = int(time.mktime(end_time.timetuple())) * 1000
+    return get_messages(pid, from_timestamp = start_timestamp, to_timestamp = end_timestamp, timeout = timeout, su=su)
+
 def get_messages(pid, from_timestamp = None, to_timestamp = None, timeout = 60, su=SU):
     url = f"{su}/{pid}"
     param = ""
@@ -74,7 +79,7 @@ def get_messages(pid, from_timestamp = None, to_timestamp = None, timeout = 60, 
         param = param + f"?from={from_timestamp}"
     
     if to_timestamp is not None:
-        param = param + f"?to={to_timestamp}"
+        param = param + f"&to={to_timestamp}"
 
     if param != "":
         url = url + param
