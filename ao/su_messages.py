@@ -16,6 +16,7 @@ class Message:
         self.id = id
         self.tags = [Tag(**tag) for tag in tags] if tags else []
         self.data = data
+        self.owner = kargs.get('owner').get('address')
 
     def to_dict(self):
         return {
@@ -40,15 +41,32 @@ class Node:
     def __init__(self, message):
         self.message = Message(**message)
 
+    def to_dict(self):
+        return {
+            'message': self.message.to_dict()
+        }
+
 class Edge:
+    
     def __init__(self, node, cursor):
         self.node = Node(node['node']['message'])
         self.cursor = cursor
+
+    def to_dict(self):
+        return {
+            'node': self.node.to_dict(),
+            'cursor': self.cursor
+        }
+
+    def __str__(self):
+        return json.dumps(self.to_dict(), indent=4)
     
 
 class SuResponse:
     def __init__(self, page_info, edges):
         self.page_info = PageInfo(**page_info)
+        if edges == []:
+            self.edges = []
         self.edges = [Edge(edge, edge['cursor']) for edge in edges]
 
     def get_latest_cursor(self):
@@ -58,7 +76,7 @@ class SuResponse:
     def has_messages(self):
         return len(self.edges) > 0
     
-    def get_latest_message(self, tagname = None, tagvalue = None):
+    def get_latest_message(self, from_process, tagname = None, tagvalue = None):
         if tagname == None:
             if not self.has_messages():
                 return None
@@ -68,10 +86,25 @@ class SuResponse:
 
             for i in range(edges_len):
                 # 返回的数据就是倒叙排列的
-                if self.edges[edges_len - i - 1].node.message.has_tag(tagname, tagvalue):
+                msg = self.edges[edges_len - i - 1].node.message
+                if msg.has_tag(tagname, tagvalue) and msg.has_tag('From-Process', from_process):
                     return self.edges[edges_len - i - 1].node.message
                 
             return None
+    
+    # def get_latest_edge(self, tagname = None, tagvalue = None):
+    #     if tagname == None:
+    #         if not self.has_messages():
+    #             return None
+    #         return self.edges[len(self.edges) - 1]
+    #     else:
+    #         edges_len = len(self.edges)
+    #         for i in range(edges_len):
+    #             # 返回的数据就是倒叙排列的
+    #             if self.edges[edges_len - i - 1].node.message.has_tag(tagname, tagvalue):
+    #                 return self.edges[edges_len - i - 1]
+                
+    #         return None
         
     def get_edges_via_tags(self, tagname, tagvalue):
         edges = []
@@ -79,22 +112,44 @@ class SuResponse:
             return edges
         else:
             edges_len = len(self.edges)
+            if edges_len == 0:
+                return edges
 
             for i in range(edges_len):
-                if self.edges[i].node.message.has_tag(tagname, tagvalue):
-                    edges.append(self.edges[i])
+                if self.edges[edges_len - i - 1].node.message.has_tag(tagname, tagvalue):
+                    edges.append(self.edges[edges_len - i - 1])
                 
             return edges
     
-    def get_latest_balances(self, from_process):
+    def get_messages_via_tags(self, tagname, tagvalue):
+        messages = []
+        if tagname == None:
+            return messages
+        else:
+            edges_len = len(self.edges)
+            if edges_len == 0:
+                return messages
+            
+            for i in range(edges_len):
+                msg = self.edges[edges_len - i - 1].node.message
+                if msg.has_tag(tagname, tagvalue):
+                    messages.append(msg)
+            return messages
+        
+    def get_latest_balances_msg(self, from_process):
         edges_len = len(self.edges)
         for i in range(edges_len):
             msg = self.edges[edges_len - i - 1].node.message
             if msg.get_tagvalue("Action") == None and msg.get_tagvalue("From-Process") == from_process:
-                balances_dict = json.loads(msg.data)
-                if int(balances_dict[from_process]) > 100000:
-                    return balances_dict
+                return msg
         return None
+    
+    def get_latest_balances(self, from_process):
+        balances_msg = self.get_latest_balances_msg(from_process)
+        if balances_msg == None:
+            return None
+        balances_dict = json.loads(balances_msg.data)
+        return balances_dict
     
     def get_latest_balance(self, from_process, me_id):
         balances_dict = self.get_latest_balances(from_process)
@@ -104,4 +159,9 @@ class SuResponse:
             return balances_dict[me_id]
 
 def parse(json):
-    return SuResponse(json['page_info'], json['edges'])
+    error = json.get('error', None)
+    if error == None:
+        return SuResponse(json['page_info'], json['edges'])
+    else:
+        print(error)
+        return None
