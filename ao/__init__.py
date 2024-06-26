@@ -38,7 +38,7 @@ def dry_run(signer, pid, anchor, tags, data='', cu=CU, timeout=30):
     }
     return requests.post(url, json=payload, timeout=timeout).json()
     
-def spawn_process(singer, module, anchor, tags, data='', mu=MU, scheduler=SCHEDULER):
+def spawn_process(singer, module, anchor, tags, data='', mu=MU, scheduler=SCHEDULER, timeout=5):
     default_tags = {
         'Data-Protocol': 'ao',
         'Variant': 'ao.TN.1',
@@ -49,11 +49,11 @@ def spawn_process(singer, module, anchor, tags, data='', mu=MU, scheduler=SCHEDU
     }
     default_tags.update(tags)
     b = arseeding.BundleItem(singer, '', anchor, default_tags, data)
-    return b.id, requests.post(mu, data=b.binary, headers={'Content-Type': 'application/octet-stream'}).json()
+    return b.id, requests.post(mu, data=b.binary, headers={'Content-Type': 'application/octet-stream'}, timeout=timeout).json()
 
-def get_result(pid, message_id, cu=CU):
-    return requests.get(f'{cu}/result/{message_id}?process-id={pid}').json()
+def get_result(pid, message_id, cu=CU, timeout=5):
+    return requests.get(f'{cu}/result/{message_id}?process-id={pid}', timeout=timeout).json()
 
-def send_and_get(singer, pid, anchor, tags, data='', mu=MU, cu=CU):
-    mid, _ = send_message(singer, pid, anchor, tags, data, mu)
-    return mid, get_result(pid, mid, cu)
+def send_and_get(singer, pid, anchor, tags, data='', mu=MU, cu=CU, timeout=5):
+    mid, _ = send_message(singer, pid, anchor, tags, data, mu, timeout)
+    return mid, get_result(pid, mid, cu, timeout)
