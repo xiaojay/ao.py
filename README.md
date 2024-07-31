@@ -10,11 +10,11 @@ python sdk for ao https://ao.arweave.dev/
 ## Example
 
 ```
-import everpay, ao
+import ao
 
 # ao cred process id
 CRED = 'Sa0iBLPNyJQrwpTTG-tWLQU-1QeUAJA73DdxGGiKoJc'
-signer = everpay.ARSigner('your ar wallet json file')
+signer = ao.ARSigner('your ar wallet json file')
 
 # use dry run to get your cred balance
 result = ao.dry_run(signer, CRED, '', {'Action':'Balance'})
